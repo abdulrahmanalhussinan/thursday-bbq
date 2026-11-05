@@ -120,13 +120,20 @@ h1 span{color:var(--ember2)}
 }
 .people b{display:block;font-family:var(--head);font-weight:800;font-size:28px;line-height:1.2;font-variant-numeric:tabular-nums}
 .people small{color:var(--muted);font-size:13px}
-.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.tiles{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
 .tile{
-  background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center
+  background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:14px;padding:12px 14px
 }
+.tile-h{display:flex;align-items:center;gap:10px}
 .tile .ic{font-size:22px;line-height:1.2}
-.tile b{display:block;font-family:var(--head);font-weight:800;font-size:28px;line-height:1.25;font-variant-numeric:tabular-nums}
-.tile span{display:block;color:var(--muted);font-size:13px;line-height:1.4}
+.tile .nm{font-family:var(--head);font-weight:700;font-size:16px}
+.tile b{margin-inline-start:auto;display:inline-block;font-family:var(--head);font-weight:800;font-size:30px;line-height:1.2;color:var(--amber);font-variant-numeric:tabular-nums}
+.who{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line2)}
+.pc{
+  display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:600;
+  background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:99px;padding:3px 11px;overflow-wrap:anywhere
+}
+.pc em{font-style:normal;font-family:var(--head);font-weight:700;color:var(--amber);font-variant-numeric:tabular-nums}
 .bump{animation:bump .5s ease}
 @keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.18);color:var(--ember2)}100%{transform:scale(1)}}
 .sec-lbl{font-family:var(--head);font-weight:600;font-size:14px;color:var(--muted);margin:18px 0 8px}
@@ -489,6 +496,12 @@ label.fl small{font-family:var(--body);font-weight:500;color:var(--dim);font-siz
     return t;
   }
 
+  function whoOrdered(k){
+    return Array.from(entries.values())
+      .filter(function(e){ return (e.items[k] || 0) > 0; })
+      .sort(function(x, y){ return x.first - y.first; });
+  }
+
   function sortedGroups(obj){
     return Object.keys(obj).map(function(k){ return obj[k]; }).sort(function(a, b){ return b.n - a.n; });
   }
@@ -499,10 +512,18 @@ label.fl small{font-family:var(--body);font-weight:500;color:var(--dim);font-siz
     var tiles = $("tiles");
     if (!tiles.children.length){
       tiles.innerHTML = ITEMS.map(function(it){
-        return '<div class="tile"><div class="ic">' + it.ic + '</div><b data-k="t_' + it.k + '">0</b><span>' + esc(it.name) + '</span></div>';
+        return '<div class="tile"><div class="tile-h"><span class="ic">' + it.ic + '</span><span class="nm">' + esc(it.name) + '</span>' +
+          '<b data-k="t_' + it.k + '">0</b></div><div class="who" data-who="' + it.k + '" hidden></div></div>';
       }).join("");
     }
-    ITEMS.forEach(function(it){ setNum(tiles.querySelector('[data-k="t_' + it.k + '"]'), t.items[it.k]); });
+    ITEMS.forEach(function(it){
+      setNum(tiles.querySelector('[data-k="t_' + it.k + '"]'), t.items[it.k]);
+      var who = whoOrdered(it.k), box = tiles.querySelector('[data-who="' + it.k + '"]');
+      box.hidden = !who.length;
+      box.innerHTML = who.map(function(e){
+        return '<span class="pc">' + esc(e.name) + ' <em>' + e.items[it.k] + '</em></span>';
+      }).join("");
+    });
 
     var dr = sortedGroups(t.drinks);
     $("tDrinks").innerHTML = dr.length ? dr.map(function(d){
@@ -661,7 +682,10 @@ label.fl small{font-family:var(--body);font-weight:500;color:var(--dim);font-siz
   function summary(){
     var t = totals(), lines = ["🔥 فعالية شواء الخميس", ""];
     lines.push("🍔 البرجر:");
-    ITEMS.forEach(function(it){ lines.push("• " + it.name + ": " + t.items[it.k]); });
+    ITEMS.forEach(function(it){
+      var who = whoOrdered(it.k).map(function(e){ return e.name + " " + e.items[it.k]; });
+      lines.push("• " + it.name + ": " + t.items[it.k] + (who.length ? " (" + who.join("، ") + ")" : ""));
+    });
     lines.push("الإجمالي: " + t.all);
     var dr = sortedGroups(t.drinks);
     if (dr.length){ lines.push("", "🥤 المشروبات:"); dr.forEach(function(d){ lines.push("• " + d.label + ": " + d.n); }); }
