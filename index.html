@@ -264,7 +264,6 @@ label.fl small{font-family:var(--body);font-weight:500;color:var(--dim);font-siz
         <div class="big-num" id="tAll">0</div>
         <div class="big-lbl">إجمالي البرجر</div>
       </div>
-      <div class="people"><b id="tPeople">0</b><small>عدد الشباب</small></div>
     </div>
     <div class="tiles" id="tiles"></div>
 
@@ -497,7 +496,6 @@ label.fl small{font-family:var(--body);font-weight:500;color:var(--dim);font-siz
   function renderTotals(){
     var t = totals();
     setNum($("tAll"), t.all);
-    setNum($("tPeople"), t.people);
     var tiles = $("tiles");
     if (!tiles.children.length){
       tiles.innerHTML = ITEMS.map(function(it){
@@ -661,7 +659,7 @@ label.fl small{font-family:var(--body);font-weight:500;color:var(--dim);font-siz
 
   /* ---------- summary ---------- */
   function summary(){
-    var t = totals(), lines = ["🔥 فعالية شواء الخميس", "", "عدد الشباب: " + t.people, ""];
+    var t = totals(), lines = ["🔥 فعالية شواء الخميس", ""];
     lines.push("🍔 البرجر:");
     ITEMS.forEach(function(it){ lines.push("• " + it.name + ": " + t.items[it.k]); });
     lines.push("الإجمالي: " + t.all);
